@@ -22,6 +22,7 @@ const [attackState, setAttackState] = useState('');
 * Toast state management
 */
 const [showToast, setShowToast] = useState(false);
+const [toastMessage,setToastMessage] = useState(null)
 
 const runAttackAction = async () => {
   console.log('heeeyy')
@@ -33,13 +34,7 @@ const runAttackAction = async () => {
       await attackTxn.wait();
       console.log('attackTxn:', attackTxn);
       setAttackState('hit');
-        /*
-      * Set your toast state to true and then false 5 seconds later
-      */
-      setShowToast(true);
-      setTimeout(() => {
-        setShowToast(false);
-      }, 5000);
+
     }
   } catch (error) {
     console.error('Error attacking boss:', error);
@@ -62,24 +57,46 @@ useEffect(() => {
 		/*
 		* Setup logic when this event is fired off
 		*/
-		const onAttackComplete = (newBossHp, newPlayerHp) => {
+		const onAttackComplete = (newBossHp, newPlayerHp,criticalHit,blocked) => {
 	    const bossHp = newBossHp.toNumber();
 	    const playerHp = newPlayerHp.toNumber();
-	
+	console.log({criticalHit,blocked})
 	    console.log(`AttackComplete: Boss Hp: ${bossHp} Player Hp: ${playerHp}`);
 	
 		  /*
 		   * Update both player and boss Hp
 		   */
-	    setBoss((prevState) => {
+	     setBoss((prevState) => {
 	      return { ...prevState, hp: bossHp };
 	    });
-	
+      // if(playerHp === 0 ){
+      //             setToastMessage(`Your BattleCat was Obliterated, maybe mint another one?`)
+	    //   setShowToast(true);
+      //           /*
+      // * Set your toast state to true and then false 5 seconds later
+      // */
+      // setTimeout(() => {
+      //   setShowToast(false);
+      // }, 7000);
+      // }
 	    setCharacterNFT((prevState) => {
 	      return { ...prevState, hp: playerHp };
-	    });
+	    })
+
+
+      console.log({boss})
+       if(boss && newBossHp){
+         console.log('battle recap show')
+          setToastMessage(`💥 ${boss.name} was hit for ${criticalHit ? `${characterNFT.attackDamage*characterNFT.criticalMultiplier}, Critical HIT!` : `${characterNFT.attackDamage}!`}\n , ${blocked ? 'You also blocked the attack, no damage was recieved' : `boss attacked back, you got hit for ${boss.attackDamage}!`}`)
+	      setShowToast(true);
+                /*
+      * Set your toast state to true and then false 5 seconds later
+      */
+      setTimeout(() => {
+        setShowToast(false);
+      }, 7000);
+       }
 	  };
-	
 	  if (gameContract) {
 	    fetchBoss();
 			gameContract.on('AttackComplete', onAttackComplete);
@@ -113,17 +130,18 @@ useEffect(() => {
       console.log('Ethereum object not found');
     }
   }, []);
-
+console.log({boss})
 return (
   <div className="arena-container">
       {/* Add your toast HTML right here , change characterNFT.attackDamage with state coming from the succesful attack event data*/}
-    {boss &&showToast && (
+    {boss &&showToast&& (
       <div id="toast" className="show">
-        <div id="desc">{`💥 ${boss.name} was hit for ${characterNFT.attackDamage}!`}</div>
+      <div id="desc" >Turn recap: </div>
+        <div id="desc">{toastMessage}</div>
       </div>
     )}
       {/* Boss */}
-    {boss && (
+    {boss  &&  (
       <div className="boss-container">
         {/* Add attackState to the className! After all, it's just class names */}
         <div className={`boss-content ${attackState}`}>

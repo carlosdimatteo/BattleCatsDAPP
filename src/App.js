@@ -44,6 +44,7 @@ const [isLoading, setIsLoading] = useState(false);
         setCurrentAccount(account);
       } else {
         console.log('No authorized account found');
+        setIsLoading(false)
       }
     } catch (error) {
       console.log(error);
@@ -138,7 +139,7 @@ useEffect(() => {
     const txn = await gameContract.checkIfUserHasNFT();
     if (txn.name) {
       console.log('User has character NFT');
-      // setCharacterNFT(transformCharacterData(txn));
+      setCharacterNFT(transformCharacterData(txn));
     }
     console.log(txn)
     setIsLoading(false)
